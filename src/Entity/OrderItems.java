@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package foodhub;
+package Entity;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -124,6 +124,12 @@ public class OrderItems implements Serializable {
         return true;
     }
 
+   
+    public void fixPriceAtTime() {
+    if (this.meals != null && this.priceAtTime == null) {
+        this.priceAtTime = this.meals.getPrice();
+    }
+}
     @Override
     public String toString() {
         return "foodhub.OrderItems[ orderItemsPK=" + orderItemsPK + " ]";

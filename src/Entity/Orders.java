@@ -2,8 +2,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package foodhub;
+package Entity;
 
+import Enums.OrderStatus;
+import Enums.Invoice;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -12,6 +14,8 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -48,7 +52,8 @@ public class Orders implements Serializable {
     private Date orderPlacedAt;
     @Basic(optional = false)
     @Column(name = "status")
-    private String status;
+    @Enumerated(EnumType.STRING) 
+    private OrderStatus status;
     @Column(name = "completed_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date completedAt;
@@ -70,7 +75,7 @@ public class Orders implements Serializable {
         this.id = id;
     }
 
-    public Orders(String id, String status) {
+    public Orders(String id, OrderStatus status) {
         this.id = id;
         this.status = status;
     }
@@ -91,11 +96,11 @@ public class Orders implements Serializable {
         this.orderPlacedAt = orderPlacedAt;
     }
 
-    public String getStatus() {
+    public OrderStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(OrderStatus status) {
         this.status = status;
     }
 
@@ -158,6 +163,20 @@ public class Orders implements Serializable {
         }
         return true;
     }
+    
+    public void calculateSubtotal() {
+    BigDecimal total = BigDecimal.ZERO;
+    if (orderItemsSet != null) {
+        for (OrderItems item : orderItemsSet) {
+            item.fixPriceAtTime(); 
+            if (item.getPriceAtTime() != null) {
+                BigDecimal itemTotal = item.getPriceAtTime().multiply(new BigDecimal(item.getQuantity()));
+                total = total.add(itemTotal);
+            }
+        }
+    }
+    this.subtotal = total;
+}
 
     @Override
     public String toString() {

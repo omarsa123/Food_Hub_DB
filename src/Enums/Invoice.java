@@ -2,17 +2,20 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package foodhub;
+package Enums;
 
+import Entity.InvoiceStatus;
+import Entity.Orders;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -56,7 +59,8 @@ public class Invoice implements Serializable {
     private Date paymentDate;
     @Basic(optional = false)
     @Column(name = "status")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private InvoiceStatus status;
     @JoinColumn(name = "order_id", referencedColumnName = "ID")
     @OneToOne(optional = false)
     private Orders orderId;
@@ -68,7 +72,7 @@ public class Invoice implements Serializable {
         this.id = id;
     }
 
-    public Invoice(String id, BigDecimal fees, BigDecimal totalPrice, String status) {
+    public Invoice(String id, BigDecimal fees, BigDecimal totalPrice, InvoiceStatus status) {
         this.id = id;
         this.fees = fees;
         this.totalPrice = totalPrice;
@@ -115,11 +119,11 @@ public class Invoice implements Serializable {
         this.paymentDate = paymentDate;
     }
 
-    public String getStatus() {
+    public InvoiceStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(InvoiceStatus status) {
         this.status = status;
     }
 
@@ -131,6 +135,28 @@ public class Invoice implements Serializable {
         this.orderId = orderId;
     }
 
+public BigDecimal calculateFees(double taxPercentage, BigDecimal deliveryFee) {
+    if (this.orderId != null) {
+        this.orderId.calculateSubtotal();
+        BigDecimal orderSubtotal = this.orderId.getSubtotal();
+        
+        if (orderSubtotal != null) {
+            BigDecimal taxDec = BigDecimal.valueOf(taxPercentage / 100.0);
+            BigDecimal taxAmount = orderSubtotal.multiply(taxDec);
+            this.fees = taxAmount.add(deliveryFee);
+            return this.fees;
+        }
+    }
+    return BigDecimal.ZERO;
+}
+
+public void calculateFinalTotal(double taxPercentage, BigDecimal deliveryFee) {
+    if (this.orderId != null && this.orderId.getSubtotal() != null) {
+        BigDecimal computedFees = calculateFees(taxPercentage, deliveryFee);
+        this.totalPrice = this.orderId.getSubtotal().add(computedFees);
+    }
+}
+    
     @Override
     public int hashCode() {
         int hash = 0;

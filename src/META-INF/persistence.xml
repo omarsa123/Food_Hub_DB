@@ -2,12 +2,12 @@
 <persistence version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence           http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd">
   <persistence-unit name="FoodHubPU" transaction-type="RESOURCE_LOCAL">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-    <class>foodhub.Orders</class>
-    <class>foodhub.Invoice</class>
-    <class>foodhub.OrderItems</class>
-    <class>foodhub.Customers</class>
-    <class>foodhub.Categories</class>
-    <class>foodhub.Meals</class>
+    <class>Entity.Orders</class>
+    <class>Entity.Categories</class>
+    <class>Entity.Meals</class>
+    <class>Entity.OrderItems</class>
+    <class>Entity.Customers</class>
+    <class>Enums.Invoice</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/FoodHub?zeroDateTimeBehavior=CONVERT_TO_NULL"/>
       <property name="javax.persistence.jdbc.user" value="root"/>
