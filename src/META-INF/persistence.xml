@@ -7,7 +7,7 @@
     <class>Entity.Meals</class>
     <class>Entity.OrderItems</class>
     <class>Entity.Customers</class>
-    <class>Enums.Invoice</class>
+    <class>Entity.Invoice</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/FoodHub?zeroDateTimeBehavior=CONVERT_TO_NULL"/>
       <property name="javax.persistence.jdbc.user" value="root"/>
