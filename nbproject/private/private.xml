@@ -10,10 +10,12 @@
             <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/src/Entity/Meals.java</file>
             <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/src/Entity/Categories.java</file>
             <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/src/Entity/Customers.java</file>
-            <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/src/Enums/Invoice.java</file>
+            <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/src/Entity/Invoice.java</file>
             <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/src/Entity/Orders.java</file>
-            <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/src/Entity/InvoiceStatus.java</file>
+            <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/src/Enums/InvoiceStatus.java</file>
             <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/src/Enums/OrderStatus.java</file>
+            <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/src/CRUD/CustomerDAO.java</file>
+            <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/src/CRUD/CategoryDAO.java</file>
         </group>
     </open-files>
 </project-private>
