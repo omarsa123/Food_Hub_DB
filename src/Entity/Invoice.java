@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package Entity;
 
 import Enums.InvoiceStatus;
@@ -9,34 +5,16 @@ import Entity.Orders;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import java.util.List;
+import javax.persistence.*;
 
-/**
- *
- * @author Dragon
- */
 @Entity
 @Table(name = "invoice")
 @NamedQueries({
     @NamedQuery(name = "Invoice.findAll", query = "SELECT i FROM Invoice i"),
     @NamedQuery(name = "Invoice.findById", query = "SELECT i FROM Invoice i WHERE i.id = :id"),
-    @NamedQuery(name = "Invoice.findByCreatedAt", query = "SELECT i FROM Invoice i WHERE i.createdAt = :createdAt"),
-    @NamedQuery(name = "Invoice.findByFees", query = "SELECT i FROM Invoice i WHERE i.fees = :fees"),
-    @NamedQuery(name = "Invoice.findByTotalPrice", query = "SELECT i FROM Invoice i WHERE i.totalPrice = :totalPrice"),
-    @NamedQuery(name = "Invoice.findByPaymentDate", query = "SELECT i FROM Invoice i WHERE i.paymentDate = :paymentDate"),
-    @NamedQuery(name = "Invoice.findByStatus", query = "SELECT i FROM Invoice i WHERE i.status = :status")})
+    @NamedQuery(name = "Invoice.findByStatus", query = "SELECT i FROM Invoice i WHERE i.status = :status")
+})
 public class Invoice implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -44,27 +22,33 @@ public class Invoice implements Serializable {
     @Basic(optional = false)
     @Column(name = "ID")
     private String id;
+    
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+
     @Basic(optional = false)
     @Column(name = "fees")
     private BigDecimal fees;
+
     @Basic(optional = false)
     @Column(name = "total_price")
     private BigDecimal totalPrice;
+
     @Column(name = "payment_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date paymentDate;
+
     @Basic(optional = false)
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private InvoiceStatus status;
+
     @JoinColumn(name = "order_id", referencedColumnName = "ID")
     @OneToOne(optional = false)
     private Orders orderId;
 
+    // Constructors
     public Invoice() {
     }
 
@@ -72,114 +56,101 @@ public class Invoice implements Serializable {
         this.id = id;
     }
 
-    public Invoice(String id, BigDecimal fees, BigDecimal totalPrice, InvoiceStatus status) {
-        this.id = id;
-        this.fees = fees;
-        this.totalPrice = totalPrice;
-        this.status = status;
+    public BigDecimal calculateFees(double taxPercentage, BigDecimal deliveryFee) {
+        if (this.orderId != null) {
+            this.orderId.calculateSubtotal();
+            BigDecimal orderSubtotal = this.orderId.getSubtotal();
+            
+            if (orderSubtotal != null) {
+                BigDecimal taxDec = BigDecimal.valueOf(taxPercentage / 100.0);
+                BigDecimal taxAmount = orderSubtotal.multiply(taxDec);
+                this.fees = taxAmount.add(deliveryFee);
+                return this.fees;
+            }
+        }
+        return BigDecimal.ZERO;
     }
 
-    public String getId() {
-        return id;
+    public void calculateFinalTotal(double taxPercentage, BigDecimal deliveryFee) {
+        if (this.orderId != null && this.orderId.getSubtotal() != null) {
+            BigDecimal computedFees = calculateFees(taxPercentage, deliveryFee);
+            this.totalPrice = this.orderId.getSubtotal().add(computedFees);
+        }
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void insert(EntityManager em, double tax, BigDecimal delivery) {
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            this.calculateFinalTotal(tax, delivery); 
+            em.persist(this);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            e.printStackTrace();
+        }
     }
 
-    public Date getCreatedAt() {
-        return createdAt;
+public void update(EntityManager em, InvoiceStatus newStatus, Date newPaymentDate) {
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Invoice existingInvoice = em.find(Invoice.class, this.id);
+            if (existingInvoice != null) {
+                existingInvoice.setStatus(newStatus);
+                existingInvoice.setPaymentDate(newPaymentDate);
+                
+                this.status = newStatus;
+                this.paymentDate = newPaymentDate;
+            }
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            e.printStackTrace();
+        }
     }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
+    public static void deleteById(EntityManager em, String id) {
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Invoice i = em.find(Invoice.class, id);
+            if (i != null) em.remove(i);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            e.printStackTrace();
+        }
     }
 
-    public BigDecimal getFees() {
-        return fees;
-    }
-
-    public void setFees(BigDecimal fees) {
-        this.fees = fees;
-    }
-
-    public BigDecimal getTotalPrice() {
-        return totalPrice;
-    }
-
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
-    public Date getPaymentDate() {
-        return paymentDate;
-    }
-
-    public void setPaymentDate(Date paymentDate) {
-        this.paymentDate = paymentDate;
-    }
-
-    public InvoiceStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(InvoiceStatus status) {
-        this.status = status;
-    }
-
-    public Orders getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(Orders orderId) {
-        this.orderId = orderId;
-    }
-
-public BigDecimal calculateFees(double taxPercentage, BigDecimal deliveryFee) {
-    if (this.orderId != null) {
-        this.orderId.calculateSubtotal();
-        BigDecimal orderSubtotal = this.orderId.getSubtotal();
+    public static BigDecimal getDailyRevenue(EntityManager em) {
+        String jpql = "SELECT SUM(i.totalPrice) FROM Invoice i WHERE i.paymentDate >= :today AND i.status = :status";
         
-        if (orderSubtotal != null) {
-            BigDecimal taxDec = BigDecimal.valueOf(taxPercentage / 100.0);
-            BigDecimal taxAmount = orderSubtotal.multiply(taxDec);
-            this.fees = taxAmount.add(deliveryFee);
-            return this.fees;
-        }
-    }
-    return BigDecimal.ZERO;
-}
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        cal.set(java.util.Calendar.MINUTE, 0);
+        cal.set(java.util.Calendar.SECOND, 0);
+        Date today = cal.getTime();
 
-public void calculateFinalTotal(double taxPercentage, BigDecimal deliveryFee) {
-    if (this.orderId != null && this.orderId.getSubtotal() != null) {
-        BigDecimal computedFees = calculateFees(taxPercentage, deliveryFee);
-        this.totalPrice = this.orderId.getSubtotal().add(computedFees);
-    }
-}
-    
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
+        try {
+            return em.createQuery(jpql, BigDecimal.class)
+                    .setParameter("today", today)
+                    .setParameter("status", InvoiceStatus.PAID)
+                    .getSingleResult();
+        } catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
     }
 
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Invoice)) {
-            return false;
-        }
-        Invoice other = (Invoice) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    public BigDecimal getTotalPrice() { return totalPrice; }
+    public void setOrderId(Orders orderId) { this.orderId = orderId; }
+    public void setStatus(InvoiceStatus status) { this.status = status; }
+    public void setPaymentDate(Date paymentDate) { this.paymentDate = paymentDate; }
 
     @Override
     public String toString() {
-        return "foodhub.Invoice[ id=" + id + " ]";
+        return "Invoice[ id=" + id + ", total=" + totalPrice + " ]";
     }
-    
 }
