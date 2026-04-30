@@ -1,22 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package Entity;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
-import javax.persistence.Basic;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  *
@@ -36,9 +23,11 @@ public class Categories implements Serializable {
     @Basic(optional = false)
     @Column(name = "ID")
     private Integer id;
+    
     @Basic(optional = false)
     @Column(name = "name")
     private String name;
+    
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "categoryId")
     private Set<Meals> mealsSet;
 
@@ -53,30 +42,71 @@ public class Categories implements Serializable {
         this.id = id;
         this.name = name;
     }
-
-    public Integer getId() {
-        return id;
+    public void insert(EntityManager em) {
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.persist(this);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            e.printStackTrace();
+        }
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void update(EntityManager em, String newName) {
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Categories existingCategory = em.find(Categories.class, this.id);
+            
+            if (existingCategory != null) {
+                existingCategory.setName(newName);
+            }
+            
+            tx.commit();
+            this.name = newName; 
+            
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            e.printStackTrace();
+        }
     }
 
-    public String getName() {
-        return name;
+    public static void deleteById(EntityManager em, int id) {
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Categories category = em.find(Categories.class, id);
+            if (category != null) {
+                em.remove(category);
+            }
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            e.printStackTrace();
+        }
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public static List<Categories> getAllCategories(EntityManager em) {
+        return em.createNamedQuery("Categories.findAll", Categories.class).getResultList();
+    }
+    public static List<Categories> findByName(EntityManager em, String name) {
+        return em.createNamedQuery("Categories.findByName", Categories.class)
+                 .setParameter("name", name)
+                 .getResultList();
     }
 
-    public Set<Meals> getMealsSet() {
-        return mealsSet;
+    public static Categories findById(EntityManager em, int id) {
+        return em.find(Categories.class, id);
     }
 
-    public void setMealsSet(Set<Meals> mealsSet) {
-        this.mealsSet = mealsSet;
-    }
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public Set<Meals> getMealsSet() { return mealsSet; }
+    public void setMealsSet(Set<Meals> mealsSet) { this.mealsSet = mealsSet; }
 
     @Override
     public int hashCode() {
@@ -87,7 +117,6 @@ public class Categories implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof Categories)) {
             return false;
         }
@@ -100,7 +129,6 @@ public class Categories implements Serializable {
 
     @Override
     public String toString() {
-        return "foodhub.Categories[ id=" + id + " ]";
+        return "Category[ id=" + id + ", name=" + name + " ]";
     }
-    
 }

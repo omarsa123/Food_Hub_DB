@@ -1,28 +1,11 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package Entity;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
-import javax.persistence.Basic;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 
-/**
- *
- * @author Dragon
- */
 @Entity
 @Table(name = "meals")
 @NamedQueries({
@@ -34,22 +17,27 @@ import javax.persistence.Table;
 public class Meals implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    
     @Id
     @Basic(optional = false)
     @Column(name = "ID")
     private String id;
+    
     @Basic(optional = false)
     @Column(name = "name")
     private String name;
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    
     @Basic(optional = false)
     @Column(name = "price")
     private BigDecimal price;
+    
     @Column(name = "description")
     private String description;
+    
     @JoinColumn(name = "category_id", referencedColumnName = "ID")
     @ManyToOne(optional = false)
     private Categories categoryId;
+    
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "meals")
     private Set<OrderItems> orderItemsSet;
 
@@ -66,53 +54,76 @@ public class Meals implements Serializable {
         this.price = price;
     }
 
-    public String getId() {
-        return id;
+    public void insert(EntityManager em) {
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.persist(this);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            e.printStackTrace();
+        }
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void update(EntityManager em, String newName, BigDecimal newPrice, String newDesc, Categories newCategory) {
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Meals existingMeal = em.find(Meals.class, this.id);
+            if (existingMeal != null) {
+                existingMeal.setName(newName);
+                existingMeal.setPrice(newPrice);
+                existingMeal.setDescription(newDesc);
+                existingMeal.setCategoryId(newCategory);
+                
+                this.name = newName;
+                this.price = newPrice;
+                this.description = newDesc;
+                this.categoryId = newCategory;
+            }
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            e.printStackTrace();
+        }
     }
 
-    public String getName() {
-        return name;
+    public static void deleteById(EntityManager em, String id) {
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Meals meal = em.find(Meals.class, id);
+            if (meal != null) {
+                em.remove(meal);
+            }
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            e.printStackTrace();
+        }
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public static List<Meals> getAllMeals(EntityManager em) {
+        return em.createNamedQuery("Meals.findAll", Meals.class).getResultList();
     }
 
-    public BigDecimal getPrice() {
-        return price;
+    public static Meals findById(EntityManager em, String id) {
+        return em.find(Meals.class, id);
     }
 
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Categories getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(Categories categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    public Set<OrderItems> getOrderItemsSet() {
-        return orderItemsSet;
-    }
-
-    public void setOrderItemsSet(Set<OrderItems> orderItemsSet) {
-        this.orderItemsSet = orderItemsSet;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public Categories getCategoryId() { return categoryId; }
+    public void setCategoryId(Categories categoryId) { this.categoryId = categoryId; }
+    public Set<OrderItems> getOrderItemsSet() { return orderItemsSet; }
+    public void setOrderItemsSet(Set<OrderItems> orderItemsSet) { this.orderItemsSet = orderItemsSet; }
 
     @Override
     public int hashCode() {
@@ -123,7 +134,6 @@ public class Meals implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof Meals)) {
             return false;
         }
@@ -136,7 +146,6 @@ public class Meals implements Serializable {
 
     @Override
     public String toString() {
-        return "foodhub.Meals[ id=" + id + " ]";
+        return "Meals[ id=" + id + ", name=" + name + " ]";
     }
-    
 }
