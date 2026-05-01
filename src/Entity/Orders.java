@@ -83,10 +83,7 @@ public class Orders implements Serializable {
         this.status = status;
     }
 
-   @PrePersist
-    protected void onCreate() {
-        this.orderPlacedAt = new java.util.Date();
-    }
+   
         // الbigDecimal مبعرفش اعمله += او الباقي يعني
   public void calculateSubtotal() {
         BigDecimal total = BigDecimal.ZERO;
