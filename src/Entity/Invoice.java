@@ -135,7 +135,7 @@ public void update(EntityManager em, InvoiceStatus newStatus, Date newPaymentDat
         try {
             return em.createQuery(jpql, BigDecimal.class)
                     .setParameter("today", today)
-                    .setParameter("status", InvoiceStatus.PAID)
+                    .setParameter("status", InvoiceStatus.paid)
                     .getSingleResult();
         } catch (Exception e) {
             return BigDecimal.ZERO;

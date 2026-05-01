@@ -9,5 +9,5 @@ package Enums;
  * @author Filo
  */
 public enum InvoiceStatus {
-    PAID, UNPAID
+    paid, unpaid
 }

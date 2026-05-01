@@ -10,6 +10,8 @@ import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -64,6 +66,58 @@ public class OrderItems implements Serializable {
         this.orderItemsPK = new OrderItemsPK(orderId, mealId);
     }
 
+    public void fixPriceAtTime() {
+    if (this.meals != null && this.priceAtTime == null) {
+        this.priceAtTime = this.meals.getPrice();
+    }
+}
+      public BigDecimal calculateItemTotal() {
+        fixPriceAtTime(); 
+        if (this.priceAtTime != null) {
+            return this.priceAtTime.multiply(new BigDecimal(this.quantity));
+        }
+        return BigDecimal.ZERO;
+    }
+     public void saveItem(EntityManager em) {
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.persist(this);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            throw e;
+        }
+    }
+     public void updateDetails(EntityManager em, int newQuantity, BigDecimal newPrice) {
+    EntityTransaction tx = em.getTransaction();
+    try {
+        tx.begin();
+        this.quantity = newQuantity;
+        this.priceAtTime = newPrice;
+        tx.commit();
+    } catch (Exception e) {
+        if (tx.isActive()) tx.rollback();
+        throw e;
+    }
+}
+     public static void deleteById(EntityManager em, OrderItemsPK pk) {
+    OrderItems item = em.find(OrderItems.class, pk);
+    if (item == null) {
+        System.out.println("Item not found with the provided  ID.");
+        return;
+    }
+    EntityTransaction tx = em.getTransaction();
+    try {
+        tx.begin();
+        em.remove(item);
+        tx.commit();
+    } catch (Exception e) {
+        if (tx.isActive()) tx.rollback();
+        throw e;
+    }
+}
+     
     public OrderItemsPK getOrderItemsPK() {
         return orderItemsPK;
     }
@@ -125,11 +179,6 @@ public class OrderItems implements Serializable {
     }
 
    
-    public void fixPriceAtTime() {
-    if (this.meals != null && this.priceAtTime == null) {
-        this.priceAtTime = this.meals.getPrice();
-    }
-}
     @Override
     public String toString() {
         return "foodhub.OrderItems[ orderItemsPK=" + orderItemsPK + " ]";
