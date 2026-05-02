@@ -9,12 +9,10 @@ import javax.persistence.Persistence;
 public class FoodHub {
 
     public static void main(String[] args) {
-        // 1. إنشاء مصنع مدير الكيانات (استبدل الاسم بالـ PU الخاص بك)
         EntityManagerFactory emf = null;
         EntityManager em = null;
 
         try {
-            // حاول فتح الاتصال
             emf = Persistence.createEntityManagerFactory("FoodHubPU");
             em = emf.createEntityManager();
 
@@ -27,7 +25,6 @@ public class FoodHub {
             System.err.println("!!! Critical Error during startup !!!");
             e.printStackTrace();
         } finally {
-            // 4. إغلاق الموارد بأمان عند قفل البرنامج
             if (em != null && em.isOpen()) {
                 em.close();
             }

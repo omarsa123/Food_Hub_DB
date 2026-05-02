@@ -9,7 +9,6 @@ import javax.persistence.EntityManager;
 
 public class ReportsQueries {
 
-    // 1. حساب إجمالي الإيرادات من الطلبات المكتملة (Total Sales)
     public static BigDecimal getTotalRevenue(EntityManager em) {
         String jpql = "SELECT SUM(o.subtotal) FROM Orders o WHERE o.status = :status";
         BigDecimal result = em.createQuery(jpql, BigDecimal.class)
@@ -18,25 +17,21 @@ public class ReportsQueries {
         return result != null ? result : BigDecimal.ZERO;
     }
 
-    // 2. استرجاع إجمالي عدد الأوردرات (Total Orders)
     public static Long getTotalOrdersCount(EntityManager em) {
         String jpql = "SELECT COUNT(o) FROM Orders o";
         return em.createQuery(jpql, Long.class).getSingleResult();
     }
 
-    // 3. عد جميع الوجبات المتاحة (Total Meals)
     public static Long getTotalMealsCount(EntityManager em) {
         String jpql = "SELECT COUNT(m) FROM Meals m";
         return em.createQuery(jpql, Long.class).getSingleResult();
     }
 
-    // 4. عد جميع العملاء المسجلين (Total Customers)
     public static Long getTotalCustomersCount(EntityManager em) {
         String jpql = "SELECT COUNT(c) FROM Customers c";
         return em.createQuery(jpql, Long.class).getSingleResult();
     }
 
-    // --- الكويريز اللي كانت موجودة عندك (مع تحسين بسيط في الـ Formatting) ---
 
     public static List<Object[]> getTopSellingMeals(EntityManager em) {
         String jpql = "SELECT oi.meals.name, SUM(oi.quantity) as totalSales " +

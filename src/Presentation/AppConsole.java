@@ -12,8 +12,6 @@ import java.util.UUID;
 
 public class AppConsole {
     private static final Scanner scanner = new Scanner(System.in);
-
-    // أدوات مساعدة لتوليد المعرفات
     private static String generateOrderId() { return "ORD-" + System.currentTimeMillis(); }
     private static String generateMealId() { return "ML-" + UUID.randomUUID().toString().substring(0, 5).toUpperCase(); }
 
@@ -34,7 +32,6 @@ public class AppConsole {
         }
     }
 
-    // --- لوحة تحكم الموظف ---
     private static void employeeMenu(EntityManager em) {
         while (true) {
             System.out.println("\n--- STAFF DASHBOARD ---");
@@ -58,11 +55,10 @@ public class AppConsole {
         }
     }
 
-    // --- 1. قسم التقارير (10 كويريز) ---
     private static void reportsMenu(EntityManager em) {
         while (true) {
             System.out.println("\n--- REPORTS & ANALYTICS ---");
-            System.out.println("1. KPIs Summary (Revenue, Orders, Meals, Customers)");
+            System.out.println("1. KPIs Summary");
             System.out.println("2. Top Selling Meals");
             System.out.println("3. Monthly Completed Orders");
             System.out.println("4. Monthly Canceled Orders");
@@ -71,10 +67,9 @@ public class AppConsole {
             System.out.println("7. View Unpaid Invoices");
             System.out.println("8. List All Registered Customers");
             System.out.println("9. View All Delivered Orders");
-            System.out.println("10. Database Health Check");
-            System.out.println("11. Back");
+            System.out.println("10. Back");
             String r = scanner.nextLine();
-            if (r.equals("11")) break;
+            if (r.equals("10")) break;
 
             System.out.println("\n--- RESULT ---");
             switch (r) {
@@ -95,13 +90,11 @@ public class AppConsole {
                 case "7": ReportsQueries.getUnpaidInvoices(em).forEach(inv -> System.out.println("Invoice: " + inv.getId())); break;
                 case "8": em.createQuery("SELECT c FROM Customers c", Customers.class).getResultList().forEach(c -> System.out.println(c.getName() + " - " + c.getPhone())); break;
                 case "9": em.createQuery("SELECT o FROM Orders o WHERE o.status = :s", Orders.class).setParameter("s", OrderStatus.delivered).getResultList().forEach(o -> System.out.println("Order: " + o.getId() + " | Sum: " + o.getSubtotal())); break;
-                case "10": System.out.println("Entities Tracked: " + em.getMetamodel().getEntities().size()); break;
             }
             System.out.println("--------------");
         }
     }
 
-    // --- 2. إدارة العملاء CRUD ---
     private static void manageCustomersMenu(EntityManager em) {
         while (true) {
             System.out.println("\n--- CUSTOMER MANAGEMENT ---");
@@ -138,8 +131,6 @@ public class AppConsole {
             }
         }
     }
-
-    // --- 5. بوابة البحث عن الأوردرات والفواتير ---
 private static void searchPortal(EntityManager em) {
         System.out.println("\n1. Search Order ID | 2. Search Invoice ID");
         String choice = scanner.nextLine();
@@ -164,8 +155,6 @@ private static void searchPortal(EntityManager em) {
                 System.out.println("Invoice ID: " + inv.getId());
                 System.out.println("Status: " + inv.getStatus());
                 System.out.println("Total Price (with fees): " + inv.getTotalPrice() + " EGP");
-                
-                // جلب بيانات الأوردر والعميل المرتبطين بالفاتورة
                 Orders relatedOrder = inv.getOrderId();
                 if (relatedOrder != null) {
                     System.out.println("---------------------------");
@@ -182,8 +171,6 @@ private static void searchPortal(EntityManager em) {
             }
         }
     }
-
-    // --- بوابة العميل (التسجيل والطلب برقم الهاتف) ---
     private static void customerMenu(EntityManager em) {
         while (true) {
             System.out.println("\n--- CUSTOMER PORTAL ---");

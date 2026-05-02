@@ -9,14 +9,11 @@ import java.util.*;
 public class dataSender {
 
     public static void seedDatabase(EntityManager em) {
-        // نتحقق إذا كانت الداتا بيز فارغة لتجنب تكرار البيانات
         Long count = em.createQuery("SELECT COUNT(c) FROM Categories c", Long.class).getSingleResult();
         if (count > 0) return;
 
         try {
             em.getTransaction().begin();
-
-            // --- 1. إنشاء التصنيفات ---
             String[] catNames = {"Burgers", "Pizza", "Pasta", "Drinks"};
             List<Categories> catList = new ArrayList<>();
             for (String name : catNames) {
@@ -25,8 +22,6 @@ public class dataSender {
                 em.persist(c);
                 catList.add(c);
             }
-
-            // --- 2. إنشاء الوجبات ---
             String[][] mealData = {
                 {"M1", "Big Burger", "150", "0"}, {"M2", "Margherita", "140", "1"},
                 {"M3", "Spaghetti", "100", "2"}, {"M4", "Coke", "30", "3"}
@@ -35,10 +30,7 @@ public class dataSender {
                 Meals meal = new Meals(m[0], m[1], new BigDecimal(m[2]), catList.get(Integer.parseInt(m[3])));
                 em.persist(meal);
             }
-
-            // --- 3. إنشاء العملاء ---
-// --- 3. إنشاء العملاء مع تنوع في البيانات ---
-        String[] names = {"Omar", "Shahd", "Ziad", "Laila", "Felo"}; // أضفنا Felo
+        String[] names = {"Omar", "Shahd", "Ziad", "Laila", "Felo"};
         String[] addresses = {"Maadi, Cairo", "Nasr City, Cairo", "Smouha, Alexandria", "Dokki, Giza", "Zamalek, Cairo"};
         String[] phones = {"01012345678", "01122334455", "01233445566", "01555667788", "01099887766"};
 
@@ -47,23 +39,18 @@ public class dataSender {
         for (int i = 0; i < names.length; i++) {
             Customers c = new Customers();
             c.setName(names[i]);
-            c.setAddress(addresses[i]); // عنوان مختلف لكل واحد
-            c.setPhone(phones[i]);     // رقم تليفون مختلف
+            c.setAddress(addresses[i]);
+            c.setPhone(phones[i]);    
 
             em.persist(c);
             customersList.add(c);
         }
             em.getTransaction().commit();
-
-            // --- 4. إنشاء سيناريوهات الأوردرات (15 أوردر) ---
-            // سنستخدم الميثود المساعدة التي شرحناها سابقاً لتوليد أوردرات منوعة
             createOrderScenario(em, "ORD-101", customersList.get(0), new String[][]{{"M1", "2"}}, OrderStatus.delivered, InvoiceStatus.paid);
             createOrderScenario(em, "ORD-102", customersList.get(0), new String[][]{{"M4", "5"}}, OrderStatus.delivered, InvoiceStatus.paid);
             createOrderScenario(em, "ORD-103", customersList.get(1), new String[][]{{"M2", "1"}, {"M3", "1"}}, OrderStatus.delivered, InvoiceStatus.paid);
             createOrderScenario(em, "ORD-104", customersList.get(2), new String[][]{{"M1", "1"}}, OrderStatus.cancelled, InvoiceStatus.unpaid);
             createOrderScenario(em, "ORD-105", customersList.get(3), new String[][]{{"M3", "2"}}, OrderStatus.delivered, InvoiceStatus.unpaid);
-            // ... يمكنك تكرار الاستدعاء هنا لزيادة الداتا ...
-
             System.out.println(">>> Database Seeded with 15 Diverse Scenarios!");
 
         } catch (Exception e) {
