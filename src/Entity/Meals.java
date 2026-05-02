@@ -156,4 +156,7 @@ public class Meals implements Serializable {
     public String toString() {
         return "Meals[ id=" + id + ", name=" + name + " ]";
     }
+ public static String generateMealId() {
+    return "MEAL-" + java.util.UUID.randomUUID().toString().substring(0, 5).toUpperCase();
+}
 }
