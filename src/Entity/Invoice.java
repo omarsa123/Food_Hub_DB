@@ -149,6 +149,14 @@ public void update(EntityManager em, InvoiceStatus newStatus, Date newPaymentDat
     public void setStatus(InvoiceStatus status) { this.status = status; }
     public void setPaymentDate(Date paymentDate) { this.paymentDate = paymentDate; }
 
+    public Orders getOrderId() {
+        return orderId;
+    }
+
+    public InvoiceStatus getStatus() {
+        return status;
+    }
+
     @Override
     public String toString() {
         return "Invoice[ id=" + id + ", total=" + totalPrice + " ]";

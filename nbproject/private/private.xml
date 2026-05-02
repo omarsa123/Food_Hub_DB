@@ -2,6 +2,15 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/C:/Users/omars/Downloads/Compressed/Food_Hub_DB-ReportsQueries/Food_Hub_DB-ReportsQueries/src/foodhub/FoodHub.java</file>
+            <file>file:/C:/Users/omars/Downloads/Compressed/Food_Hub_DB-ReportsQueries/Food_Hub_DB-ReportsQueries/src/ReportsQueries/ReportsQueries.java</file>
+            <file>file:/C:/Users/omars/Downloads/Compressed/Food_Hub_DB-ReportsQueries/Food_Hub_DB-ReportsQueries/src/DataSender/dataSender.java</file>
+            <file>file:/C:/Users/omars/Downloads/Compressed/Food_Hub_DB-ReportsQueries/Food_Hub_DB-ReportsQueries/src/Presentation/AppConsole.java</file>
+            <file>file:/C:/Users/omars/Downloads/Compressed/Food_Hub_DB-ReportsQueries/Food_Hub_DB-ReportsQueries/src/Entity/Meals.java</file>
+            <file>file:/C:/Users/omars/Downloads/Compressed/Food_Hub_DB-ReportsQueries/Food_Hub_DB-ReportsQueries/src/META-INF/persistence.xml</file>
+            <file>file:/C:/Users/omars/Downloads/Compressed/Food_Hub_DB-ReportsQueries/Food_Hub_DB-ReportsQueries/src/Entity/Orders.java</file>
+            <file>file:/C:/Users/omars/Downloads/Compressed/Food_Hub_DB-ReportsQueries/Food_Hub_DB-ReportsQueries/src/Entity/Invoice.java</file>
+        </group>
     </open-files>
 </project-private>

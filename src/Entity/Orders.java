@@ -275,5 +275,8 @@ public class Orders implements Serializable {
     public String toString() {
         return "foodhub.Orders[ id=" + id + " ]";
     }
+   public static String generateOrderId() {
+    return "ORD-" + System.currentTimeMillis(); // مثال: ORD-1714674000000
+}
     
 }
