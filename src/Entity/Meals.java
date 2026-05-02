@@ -54,6 +54,13 @@ public class Meals implements Serializable {
         this.price = price;
     }
 
+    public Meals(String id, String name, BigDecimal price, Categories category) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.categoryId = category;
+    }
+
     public void insert(EntityManager em) {
         EntityTransaction tx = em.getTransaction();
         try {
@@ -112,6 +119,7 @@ public class Meals implements Serializable {
         return em.find(Meals.class, id);
     }
 
+    // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public String getName() { return name; }
