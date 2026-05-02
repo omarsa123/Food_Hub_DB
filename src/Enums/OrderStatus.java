@@ -9,6 +9,5 @@ package Enums;
  * @author Filo
  */
 public enum OrderStatus {
-    PENDING, PREPARING, DELIVERED, CANCELLED
-
+    pending, preparing, delivered, cancelled
 }

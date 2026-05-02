@@ -8,11 +8,14 @@ import Enums.OrderStatus;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
@@ -22,6 +25,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -79,6 +83,109 @@ public class Orders implements Serializable {
         this.status = status;
     }
 
+   
+        // الbigDecimal مبعرفش اعمله += او الباقي يعني
+  public void calculateSubtotal() {
+        BigDecimal total = BigDecimal.ZERO;
+        if (orderItemsSet != null) {
+            for (OrderItems item : orderItemsSet) {
+                total = total.add(item.calculateItemTotal());
+            }
+        }
+        this.subtotal = total;
+    }
+      public void saveOrder(EntityManager em) {
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.persist(this);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            throw e;
+        }
+    }
+  public void updateOrderStatus(EntityManager em, Enums.OrderStatus newStatus) {
+    EntityTransaction tx = em.getTransaction(); 
+    try {
+        tx.begin();
+        this.status = newStatus;
+        tx.commit();
+    } catch (Exception e) {
+        if (tx.isActive()) tx.rollback();
+            throw e;
+    }
+}
+  public void updateItemQuantity(EntityManager em, String mealId, int newQuantity) {
+    
+    if (this.orderItemsSet == null) {
+        return; 
+    }
+
+    EntityTransaction tx = em.getTransaction();
+    try {
+        tx.begin();
+        
+        for (OrderItems item : this.orderItemsSet) {
+            if (item.getOrderItemsPK().getMealId().equals(mealId)) {
+                //معملتش ميثود ابديت هناك عشان مش مفيدة
+                item.setQuantity(newQuantity);
+                this.calculateSubtotal(); 
+                break; 
+            }
+        }
+        tx.commit();
+    } catch (Exception e) {
+        if (tx != null && tx.isActive()) tx.rollback();
+        throw e;
+    }
+}
+  //لازم نسيف الاوردر حتى لو مفيش ايتمز وعملنا الميثود دي عشان الفورين كي
+  public void updateForOrederItems(EntityManager em) {
+    EntityTransaction tx = em.getTransaction();
+    try {
+        tx.begin();
+        //عشان الاوردر يكون في الوقت اللي اتحطت فيه الايتمز
+        if (this.orderPlacedAt == null) {
+            this.orderPlacedAt = new Date(); 
+        }
+        this.calculateSubtotal();
+        if (this.orderItemsSet != null) {
+            for (OrderItems item : this.orderItemsSet) {
+                item.setOrders(this); 
+                if (item.getOrderItemsPK() != null) {
+                    item.getOrderItemsPK().setOrderId(this.id); 
+                }
+            }
+        }
+        em.merge(this);
+        tx.commit();
+    } catch (Exception e) {
+        if (tx.isActive()) tx.rollback();
+        throw e;
+    }
+}
+   public static void deleteById(EntityManager em, int id) {
+    Orders order = em.find(Orders.class, id);
+    if (order == null) {
+        System.out.println("Order with ID " + id + " not found.");
+        return; 
+    }
+    EntityTransaction tx = em.getTransaction();
+    try {
+        tx.begin();
+        em.remove(order);
+        tx.commit();
+    } catch (Exception e) {
+        if (tx.isActive())tx.rollback();
+        throw e;
+    }
+}
+
+   public static List<Orders> getAllOrders(EntityManager em) {
+        return em.createNamedQuery("Orders.findAll", Orders.class).getResultList();
+    }
+  
     public String getId() {
         return id;
     }
@@ -163,19 +270,6 @@ public class Orders implements Serializable {
         return true;
     }
     
-    public void calculateSubtotal() {
-    BigDecimal total = BigDecimal.ZERO;
-    if (orderItemsSet != null) {
-        for (OrderItems item : orderItemsSet) {
-            item.fixPriceAtTime(); 
-            if (item.getPriceAtTime() != null) {
-                BigDecimal itemTotal = item.getPriceAtTime().multiply(new BigDecimal(item.getQuantity()));
-                total = total.add(itemTotal);
-            }
-        }
-    }
-    this.subtotal = total;
-}
 
     @Override
     public String toString() {
