@@ -51,25 +51,36 @@ create table Invoice (
 
 /*Triggers*/
 DELIMITER //
+
 CREATE TRIGGER set_completed_at
-BEFORE UPDATE ON Orders
+BEFORE UPDATE ON orders
 FOR EACH ROW
 BEGIN
-    IF NEW.status = 'delivered' AND OLD.status != 'delivered' THEN
-        SET NEW.completed_at = CURRENT_TIMESTAMP;
+    IF NEW.status = 'delivered' AND (OLD.status IS NULL OR OLD.status <> 'delivered') THEN
+        SET NEW.completed_at = NOW();
     END IF;
-END;
-//
+END //
+
 DELIMITER ;
 DELIMITER $$
-
 CREATE TRIGGER set_payment_date
-BEFORE UPDATE ON Invoice
+BEFORE UPDATE ON Invoice 
 FOR EACH ROW
 BEGIN
-    IF NEW.status = 'paid' AND OLD.status <> 'paid' THEN
-        SET NEW.payment_date = CURRENT_TIMESTAMP;
+    IF NEW.status = 'paid' AND (OLD.status IS NULL OR OLD.status <> 'paid') THEN
+        SET NEW.payment_date = CURRENT_TIMESTAMP; 
     END IF;
 END$$
 
-DELIMITER ;        
+DELIMITER ;
+UPDATE orders 
+SET status = 'delivered' 
+WHERE ID = 'ORD-1777748986173';
+ 
+use foodhub;
+update orders 
+set status = 'delivered'
+where customer_id = 6
+select * from customers
+select * from orders
+select * from meals
