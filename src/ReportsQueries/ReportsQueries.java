@@ -87,4 +87,10 @@ public class ReportsQueries {
                      "ORDER BY orderCount DESC";
         return em.createQuery(jpql, Object[].class).getResultList();
     }
+    public static List<Entity.Meals> getMealsByCategory(EntityManager em, int categoryId) {
+        String jpql = "SELECT m FROM Meals m WHERE m.categoryId.id = :catId";
+        return em.createQuery(jpql, Entity.Meals.class)
+                 .setParameter("catId", categoryId)
+                 .getResultList();
+    }
 }
