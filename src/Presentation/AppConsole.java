@@ -18,7 +18,7 @@ public class AppConsole {
     public static void startMenu(EntityManager em) {
         while (true) {
             System.out.println("\n====================================");
-            System.out.println("     WELCOME TO FOODHUB SYSTEM      ");
+            System.out.println("      WELCOME TO FOODHUB SYSTEM      ");
             System.out.println("====================================");
             System.out.println("1. Staff Portal (Management)");
             System.out.println("2. Customer Portal (Ordering)");
@@ -35,22 +35,22 @@ public class AppConsole {
     private static void employeeMenu(EntityManager em) {
         while (true) {
             System.out.println("\n--- STAFF DASHBOARD ---");
-            System.out.println("1. System Reports (Analytics)");
-            System.out.println("2. Manage Customers (Add/Edit/Delete)");
-            System.out.println("3. Manage Meals (Menu)");
-            System.out.println("4. Manage Orders (Status/Delete)");
-            System.out.println("5. Search Portal (Search by ID)");
-            System.out.println("6. Back");
+            System.out.println("1. System Reports | 2. Manage Customers | 3. Manage Categories");
+            System.out.println("4. Manage Meals   | 5. Manage Orders    | 6. Search Portal");
+            System.out.println("7. View All Records | 8. Back");
             System.out.print("Select: ");
+            
             String choice = scanner.nextLine();
-            if (choice.equals("6")) break;
+            if (choice.equals("8")) break;
 
             switch (choice) {
                 case "1": reportsMenu(em); break;
                 case "2": manageCustomersMenu(em); break;
-                case "3": manageMealsMenu(em); break;
-                case "4": manageOrdersMenu(em); break;
-                case "5": searchPortal(em); break;
+                case "3": manageCategoriesMenu(em); break; 
+                case "4": manageMealsMenu(em); break;      
+                case "5": manageOrdersMenu(em); break;
+                case "6": searchPortal(em); break;
+                case "7": viewAllRecordsMenu(em); break;
             }
         }
     }
@@ -58,16 +58,9 @@ public class AppConsole {
     private static void reportsMenu(EntityManager em) {
         while (true) {
             System.out.println("\n--- REPORTS & ANALYTICS ---");
-            System.out.println("1. KPIs Summary");
-            System.out.println("2. Top Selling Meals");
-            System.out.println("3. Monthly Completed Orders");
-            System.out.println("4. Monthly Canceled Orders");
-            System.out.println("5. Top Spending Customer");
-            System.out.println("6. Orders Count Per Category");
-            System.out.println("7. View Unpaid Invoices");
-            System.out.println("8. List All Registered Customers");
-            System.out.println("9. View All Delivered Orders");
-            System.out.println("10. Back");
+            System.out.println("1. KPIs Summary | 2. Top Selling | 3. Monthly Success | 4. Monthly Canceled");
+            System.out.println("5. Top Customer | 6. Per Category | 7. Unpaid Invoices ");
+            System.out.println("8. All Delivered| 9. Back");
             String r = scanner.nextLine();
             if (r.equals("10")) break;
 
@@ -88,50 +81,13 @@ public class AppConsole {
                     break;
                 case "6": ReportsQueries.getOrdersPerCategory(em).forEach(row -> System.out.println(row[0] + ": " + row[1] + " orders")); break;
                 case "7": ReportsQueries.getUnpaidInvoices(em).forEach(inv -> System.out.println("Invoice: " + inv.getId())); break;
-                case "8": em.createQuery("SELECT c FROM Customers c", Customers.class).getResultList().forEach(c -> System.out.println(c.getName() + " - " + c.getPhone())); break;
-                case "9": em.createQuery("SELECT o FROM Orders o WHERE o.status = :s", Orders.class).setParameter("s", OrderStatus.delivered).getResultList().forEach(o -> System.out.println("Order: " + o.getId() + " | Sum: " + o.getSubtotal())); break;
+                case "8": em.createQuery("SELECT o FROM Orders o WHERE o.status = :s", Orders.class).setParameter("s", OrderStatus.delivered).getResultList().forEach(o -> System.out.println("Order: " + o.getId() + " | Sum: " + o.getSubtotal())); break;
             }
             System.out.println("--------------");
         }
     }
 
-    private static void manageCustomersMenu(EntityManager em) {
-        while (true) {
-            System.out.println("\n--- CUSTOMER MANAGEMENT ---");
-            System.out.println("1. List Customers | 2. Add | 3. Update | 4. Delete | 5. Back");
-            String op = scanner.nextLine();
-            if (op.equals("5")) break;
-
-            if (op.equals("1")) {
-                em.createQuery("SELECT c FROM Customers c", Customers.class).getResultList()
-                  .forEach(c -> System.out.println(c.getName() + " | " + c.getPhone() + " | " + c.getAddress()));
-            } else if (op.equals("2")) {
-                addNewCustomer(em);
-            } else if (op.equals("3")) {
-                System.out.print("Enter Phone: "); String p = scanner.nextLine();
-                List<Customers> res = em.createQuery("SELECT c FROM Customers c WHERE c.phone = :p", Customers.class).setParameter("p", p).getResultList();
-                if (!res.isEmpty()) {
-                    Customers c = res.get(0);
-                    System.out.print("New Name (empty to skip): "); String n = scanner.nextLine();
-                    if (!n.isEmpty()) c.setName(n);
-                    System.out.print("New Address: "); String a = scanner.nextLine();
-                    if (!a.isEmpty()) c.setAddress(a);
-                    em.getTransaction().begin(); em.merge(c); em.getTransaction().commit();
-                    System.out.println("Updated.");
-                }
-            } else if (op.equals("4")) {
-                System.out.print("Enter Phone to Delete: "); String p = scanner.nextLine();
-                List<Customers> res = em.createQuery("SELECT c FROM Customers c WHERE c.phone = :p", Customers.class).setParameter("p", p).getResultList();
-                if (!res.isEmpty()) {
-                    try {
-                        em.getTransaction().begin(); em.remove(res.get(0)); em.getTransaction().commit();
-                        System.out.println("Deleted.");
-                    } catch (Exception e) { System.out.println("Error: Linked orders exist."); em.getTransaction().rollback(); }
-                }
-            }
-        }
-    }
-private static void searchPortal(EntityManager em) {
+    private static void searchPortal(EntityManager em) {
         System.out.println("\n1. Search Order ID | 2. Search Invoice ID");
         String choice = scanner.nextLine();
         
@@ -139,9 +95,12 @@ private static void searchPortal(EntityManager em) {
             System.out.print("Order ID: "); String id = scanner.nextLine();
             Orders o = em.find(Orders.class, id);
             if (o != null) {
+                em.refresh(o); 
                 System.out.println("\n--- ORDER INFO ---");
-                System.out.println("Customer: " + o.getCustomerId().getName() + " | Phone: " + o.getCustomerId().getPhone());
-                System.out.println("Total: " + o.getSubtotal() + " | Status: " + o.getStatus());
+                System.out.println("Customer: " + o.getCustomerId().getName());
+                System.out.println("Status:   " + o.getStatus());
+                System.out.println("Created:  " + o.getOrderPlacedAt());
+                System.out.println("Completed At: " + (o.getCompletedAt() != null ? o.getCompletedAt() : "In Progress")); 
                 System.out.println("Items:");
                 o.getOrderItemsSet().forEach(i -> System.out.println("- " + i.getMeals().getName() + " x" + i.getQuantity()));
             } else System.out.println("Not Found.");
@@ -149,37 +108,77 @@ private static void searchPortal(EntityManager em) {
         } else if (choice.equals("2")) {
             System.out.print("Invoice ID: "); String id = scanner.nextLine();
             Invoice inv = em.find(Invoice.class, id);
-            
             if (inv != null) {
+                em.refresh(inv); 
                 System.out.println("\n--- INVOICE INFO ---");
                 System.out.println("Invoice ID: " + inv.getId());
                 System.out.println("Status: " + inv.getStatus());
-                System.out.println("Total Price (with fees): " + inv.getTotalPrice() + " EGP");
-                Orders relatedOrder = inv.getOrderId();
-                if (relatedOrder != null) {
-                    System.out.println("---------------------------");
-                    System.out.println("Related Order ID: " + relatedOrder.getId());
-                    System.out.println("Customer Name:    " + relatedOrder.getCustomerId().getName());
-                    System.out.println("Customer Phone:   " + relatedOrder.getCustomerId().getPhone());
-                    System.out.println("Order Subtotal:   " + relatedOrder.getSubtotal() + " EGP");
-                    System.out.println("---------------------------");
-                } else {
-                    System.out.println("No related order found for this invoice.");
+                System.out.println("Created At: " + inv.getCreatedAt());
+                System.out.println("Payment Date: " + (inv.getPaymentDate() != null ? inv.getPaymentDate() : "Unpaid")); 
+                System.out.println("Total (fees incl): " + inv.getTotalPrice() + " EGP");
+                if (inv.getOrderId() != null) {
+                    System.out.println("Related Order ID: " + inv.getOrderId().getId());
                 }
-            } else {
-                System.out.println("Invoice Not Found.");
-            }
+            } else System.out.println("Invoice Not Found.");
         }
     }
-    private static void customerMenu(EntityManager em) {
+
+    private static void viewAllRecordsMenu(EntityManager em) {
+        System.out.println("\n--- SYSTEM EXPLORER ---");
+        System.out.println("1. Customers | 2. Invoices | 3. Orders | 4. Categories | 5. Meals | 6. Back");
+        String op = scanner.nextLine();
+        switch (op) {
+            case "1":
+                Customers.getAllCustomers(em).forEach(c -> System.out.println(c.getName() + " | " + c.getPhone()));
+                break;
+            case "2":
+                Invoice.getAllInvoices(em).forEach(i -> {
+                    System.out.print("ID: " + i.getId() + " | Created: " + i.getCreatedAt());
+                    if(i.getPaymentDate() != null) System.out.print(" | Paid: " + i.getPaymentDate());
+                    System.out.println(" | Total: " + i.getTotalPrice());
+                });
+                break;
+            case "3":
+                Orders.getAllOrders(em).forEach(o -> {
+                    System.out.print("ID: " + o.getId() + " | Date: " + o.getOrderPlacedAt());
+                    if(o.getCompletedAt() != null) System.out.print(" | Completed: " + o.getCompletedAt());
+                    System.out.println(" | Status: " + o.getStatus());
+                });
+                break;
+            case "4":
+                Categories.getAllCategories(em).forEach(c -> System.out.println("[" + c.getId() + "] " + c.getName()));
+                break;
+            case "5":
+                showMenu(em);
+                break;
+        }
+    }
+
+    private static void manageCustomersMenu(EntityManager em) {
         while (true) {
-            System.out.println("\n--- CUSTOMER PORTAL ---");
-            System.out.println("1. Menu | 2. Order (Login) | 3. Register | 4. Back");
-            String choice = scanner.nextLine();
-            if (choice.equals("4")) break;
-            if (choice.equals("1")) showMenu(em);
-            else if (choice.equals("2")) createNewOrder(em);
-            else if (choice.equals("3")) addNewCustomer(em);
+            System.out.println("\n--- CUSTOMER MANAGEMENT ---");
+            System.out.println("1. List | 2. Add | 3. Update | 4. Delete | 5. Back");
+            String op = scanner.nextLine();
+            if (op.equals("5")) break;
+            if (op.equals("1")) {
+                em.createQuery("SELECT c FROM Customers c", Customers.class).getResultList().forEach(c -> System.out.println(c.getName() + " | " + c.getPhone()));
+            } else if (op.equals("2")) {
+                addNewCustomer(em);
+            } else if (op.equals("3")) {
+                System.out.print("Phone: "); String p = scanner.nextLine();
+                List<Customers> res = em.createQuery("SELECT c FROM Customers c WHERE c.phone = :p", Customers.class).setParameter("p", p).getResultList();
+                if (!res.isEmpty()) {
+                    Customers c = res.get(0);
+                    System.out.print("New Name: "); String n = scanner.nextLine(); if(!n.isEmpty()) c.setName(n);
+                    em.getTransaction().begin(); em.merge(c); em.getTransaction().commit();
+                }
+            } else if (op.equals("4")) {
+                System.out.print("Phone: "); String p = scanner.nextLine();
+                List<Customers> res = em.createQuery("SELECT c FROM Customers c WHERE c.phone = :p", Customers.class).setParameter("p", p).getResultList();
+                if (!res.isEmpty()) {
+                    em.getTransaction().begin(); em.remove(res.get(0)); em.getTransaction().commit();
+                }
+            }
         }
     }
 
@@ -189,7 +188,7 @@ private static void searchPortal(EntityManager em) {
         List<Customers> res = em.createQuery("SELECT c FROM Customers c WHERE c.phone = :p", Customers.class).setParameter("p", p).getResultList();
         if (res.isEmpty()) { System.out.println("Register first!"); return; }
         
-        Orders order = new Orders(generateOrderId(), OrderStatus.pending);
+        Orders order = new Orders(generateOrderId());
         order.setCustomerId(res.get(0));
         order.setOrderItemsSet(new HashSet<>());
         
@@ -208,23 +207,32 @@ private static void searchPortal(EntityManager em) {
         System.out.println("Success! Total: " + order.getSubtotal());
     }
 
-    private static void addNewCustomer(EntityManager em) {
-        System.out.print("Name: "); String n = scanner.nextLine();
-        System.out.print("Address: "); String a = scanner.nextLine();
-        System.out.print("Phone: "); String p = scanner.nextLine();
-        Customers c = new Customers(); c.setName(n); c.setAddress(a); c.setPhone(p);
-        c.insert(em);
+    private static void manageMealsMenu(EntityManager em) {
+        while (true) {
+            System.out.println("\n--- MEAL MANAGEMENT ---");
+            System.out.println("1. Add | 2. Edit | 3. Delete | 4. Back");
+            String op = scanner.nextLine();
+            if (op.equals("4")) break;
+            switch (op) {
+                case "1": addNewMeal(em); break;
+                case "2": editMeal(em); break;
+                case "3": System.out.print("ID: "); Meals.deleteById(em, scanner.nextLine()); break;
+            }
+        }
     }
 
-    private static void addNewMeal(EntityManager em) {
-        System.out.print("Name: "); String n = scanner.nextLine();
-        System.out.print("Price: "); BigDecimal pr = new BigDecimal(scanner.nextLine());
-        Meals m = new Meals(generateMealId()); m.setName(n); m.setPrice(pr);
-        em.getTransaction().begin(); em.persist(m); em.getTransaction().commit();
-    }
-
-    private static void showMenu(EntityManager em) {
-        Meals.getAllMeals(em).forEach(m -> System.out.println("["+m.getId()+"] "+m.getName()+" - "+m.getPrice()+" EGP"));
+    private static void manageCategoriesMenu(EntityManager em) {
+        while (true) {
+            System.out.println("\n--- CATEGORY MANAGEMENT ---");
+            System.out.println("1. Add | 2. Edit | 3. Delete | 4. Back");
+            String op = scanner.nextLine();
+            if (op.equals("4")) break;
+            switch (op) {
+                case "1": addCategory(em); break;
+                case "2": editCategory(em); break;
+                case "3": System.out.print("ID: "); Categories.deleteById(em, Integer.parseInt(scanner.nextLine())); break;
+            }
+        }
     }
 
     private static void manageOrdersMenu(EntityManager em) {
@@ -238,9 +246,60 @@ private static void searchPortal(EntityManager em) {
         else if (op.equals("3")) { em.getTransaction().begin(); em.remove(o); em.getTransaction().commit(); }
     }
 
-    private static void manageMealsMenu(EntityManager em) {
-        System.out.println("1. Show Menu | 2. Add New Meal");
-        String op = scanner.nextLine();
-        if (op.equals("1")) showMenu(em); else if (op.equals("2")) addNewMeal(em);
+    private static void addCategory(EntityManager em) {
+        System.out.print("Category Name: "); String name = scanner.nextLine();
+        Categories c = new Categories(); c.setName(name); c.insert(em);
+    }
+
+    private static void addNewMeal(EntityManager em) {
+        System.out.print("Meal Name: "); String n = scanner.nextLine();
+        System.out.print("Price: "); BigDecimal pr = new BigDecimal(scanner.nextLine());
+        Categories.getAllCategories(em).forEach(cat -> System.out.println(cat.getId() + ". " + cat.getName()));
+        Categories selectedCat = em.find(Categories.class, Integer.parseInt(scanner.nextLine()));
+        if (selectedCat != null) {
+            Meals m = new Meals(generateMealId());
+            m.setName(n); m.setPrice(pr); m.setCategoryId(selectedCat); m.insert(em);
+        }
+    }
+
+    private static void editMeal(EntityManager em) {
+        System.out.print("Meal ID: "); Meals m = em.find(Meals.class, scanner.nextLine());
+        if (m != null) {
+            System.out.print("New Price: "); m.setPrice(new BigDecimal(scanner.nextLine()));
+            em.getTransaction().begin(); em.merge(m); em.getTransaction().commit();
+        }
+    }
+
+    private static void editCategory(EntityManager em) {
+        System.out.print("Cat ID: "); Categories c = em.find(Categories.class, Integer.parseInt(scanner.nextLine()));
+        if (c != null) {
+            System.out.print("New Name: "); c.setName(scanner.nextLine());
+            em.getTransaction().begin(); em.merge(c); em.getTransaction().commit();
+        }
+    }
+
+    private static void showMenu(EntityManager em) {
+        Categories.getAllCategories(em).forEach(cat -> {
+            System.out.println("\n--- " + cat.getName() + " ---");
+            ReportsQueries.getMealsByCategory(em, cat.getId()).forEach(m -> System.out.printf("[%s] %-15s %s EGP\n", m.getId(), m.getName(), m.getPrice()));
+        });
+    }
+
+    private static void addNewCustomer(EntityManager em) {
+        System.out.print("Name: "); String n = scanner.nextLine();
+        System.out.print("Phone: "); String p = scanner.nextLine();
+        Customers c = new Customers(); c.setName(n); c.setPhone(p); c.insert(em);
+    }
+
+    private static void customerMenu(EntityManager em) {
+        while (true) {
+            System.out.println("\n--- CUSTOMER PORTAL ---");
+            System.out.println("1. Menu | 2. Order | 3. Register | 4. Back");
+            String choice = scanner.nextLine();
+            if (choice.equals("4")) break;
+            if (choice.equals("1")) showMenu(em);
+            else if (choice.equals("2")) createNewOrder(em);
+            else if (choice.equals("3")) addNewCustomer(em);
+        }
     }
 }

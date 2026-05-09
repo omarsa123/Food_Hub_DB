@@ -5,7 +5,12 @@
         <group>
             <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/Food_Hub_DB/src/Presentation/AppConsole.java</file>
             <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/Food_Hub_DB/src/ReportsQueries/ReportsQueries.java</file>
-            <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/Food_Hub_DB/src/foodhub/FoodHub.java</file>
+            <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/Food_Hub_DB/src/Entity/Categories.java</file>
+            <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/Food_Hub_DB/src/Entity/Invoice.java</file>
+            <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/Food_Hub_DB/src/Entity/OrderItemsPK.java</file>
+            <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/Food_Hub_DB/src/Entity/Orders.java</file>
+            <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/Food_Hub_DB/src/Entity/OrderItems.java</file>
+            <file>file:/C:/Users/omars/OneDrive/Belgeler/NetBeansProjects/FoodHub/Food_Hub_DB/src/DataSender/dataSender.java</file>
         </group>
     </open-files>
 </project-private>

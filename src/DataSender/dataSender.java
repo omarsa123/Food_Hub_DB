@@ -46,11 +46,11 @@ public class dataSender {
             customersList.add(c);
         }
             em.getTransaction().commit();
-            createOrderScenario(em, "ORD-101", customersList.get(0), new String[][]{{"M1", "2"}}, OrderStatus.delivered, InvoiceStatus.paid);
-            createOrderScenario(em, "ORD-102", customersList.get(0), new String[][]{{"M4", "5"}}, OrderStatus.delivered, InvoiceStatus.paid);
-            createOrderScenario(em, "ORD-103", customersList.get(1), new String[][]{{"M2", "1"}, {"M3", "1"}}, OrderStatus.delivered, InvoiceStatus.paid);
-            createOrderScenario(em, "ORD-104", customersList.get(2), new String[][]{{"M1", "1"}}, OrderStatus.cancelled, InvoiceStatus.unpaid);
-            createOrderScenario(em, "ORD-105", customersList.get(3), new String[][]{{"M3", "2"}}, OrderStatus.delivered, InvoiceStatus.unpaid);
+            createOrderScenario(em, "ORD-101", customersList.get(0), new String[][]{{"M1", "2"}}, OrderStatus.delivered);
+            createOrderScenario(em, "ORD-102", customersList.get(0), new String[][]{{"M4", "5"}}, OrderStatus.delivered);
+            createOrderScenario(em, "ORD-103", customersList.get(1), new String[][]{{"M2", "1"}, {"M3", "1"}}, OrderStatus.delivered);
+            createOrderScenario(em, "ORD-104", customersList.get(2), new String[][]{{"M1", "1"}}, OrderStatus.cancelled);
+            createOrderScenario(em, "ORD-105", customersList.get(3), new String[][]{{"M3", "2"}}, OrderStatus.delivered);
             System.out.println(">>> Database Seeded with 15 Diverse Scenarios!");
 
         } catch (Exception e) {
@@ -59,8 +59,8 @@ public class dataSender {
         }
     }
 
-    private static void createOrderScenario(EntityManager em, String id, Customers c, String[][] items, OrderStatus os, InvoiceStatus is) {
-        Orders order = new Orders(id, os);
+    private static void createOrderScenario(EntityManager em, String id, Customers c, String[][] items, OrderStatus os) {
+        Orders order = new Orders(id);
         order.setCustomerId(c);
         order.saveOrder(em);
 
@@ -79,7 +79,6 @@ public class dataSender {
 
         Invoice inv = new Invoice("INV-" + id.split("-")[1]);
         inv.setOrderId(order);
-        inv.setStatus(is);
         inv.insert(em, 14.0, new BigDecimal("10.0"));
     }
 }

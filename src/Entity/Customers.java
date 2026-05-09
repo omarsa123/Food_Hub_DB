@@ -66,7 +66,7 @@ public class Customers implements Serializable {
         this.address = address;
         this.phone = phone;
     }
-        public void insert(EntityManager em) {
+    public void insert(EntityManager em) {
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();

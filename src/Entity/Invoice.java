@@ -40,7 +40,7 @@ public class Invoice implements Serializable {
     private Date paymentDate;
 
     @Basic(optional = false)
-    @Column(name = "status")
+    @Column(name = "status" , columnDefinition = "VARCHAR(20) DEFAULT 'unpaid'")
     @Enumerated(EnumType.STRING)
     private InvoiceStatus status;
 
@@ -50,9 +50,11 @@ public class Invoice implements Serializable {
 
     // Constructors
     public Invoice() {
+        this.status = InvoiceStatus.unpaid;
     }
 
     public Invoice(String id) {
+        this();
         this.id = id;
     }
 
@@ -141,7 +143,15 @@ public void update(EntityManager em, InvoiceStatus newStatus, Date newPaymentDat
             return BigDecimal.ZERO;
         }
     }
-
+public static List<Invoice> getAllInvoices(EntityManager em) {
+        try {
+            return em.createNamedQuery("Invoice.findAll", Invoice.class)
+                     .getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return java.util.Collections.emptyList();
+        }
+    }
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public BigDecimal getTotalPrice() { return totalPrice; }
@@ -155,6 +165,14 @@ public void update(EntityManager em, InvoiceStatus newStatus, Date newPaymentDat
 
     public InvoiceStatus getStatus() {
         return status;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public Date getPaymentDate() {
+        return paymentDate;
     }
 
     @Override

@@ -54,7 +54,7 @@ public class Orders implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date orderPlacedAt;
     @Basic(optional = false)
-    @Column(name = "status")
+    @Column(name = "status" , columnDefinition = "VARCHAR(20) DEFAULT 'pending'")
     @Enumerated(EnumType.STRING) 
     private OrderStatus status;
     @Column(name = "completed_at")
@@ -72,19 +72,13 @@ public class Orders implements Serializable {
     private Set<OrderItems> orderItemsSet;
 
     public Orders() {
+        this.status = OrderStatus.pending;
     }
 
     public Orders(String id) {
+        this();
         this.id = id;
     }
-
-    public Orders(String id, OrderStatus status) {
-        this.id = id;
-        this.status = status;
-    }
-
-   
-        // الbigDecimal مبعرفش اعمله += او الباقي يعني
   public void calculateSubtotal() {
         BigDecimal total = BigDecimal.ZERO;
         if (orderItemsSet != null) {
@@ -128,7 +122,6 @@ public class Orders implements Serializable {
         
         for (OrderItems item : this.orderItemsSet) {
             if (item.getOrderItemsPK().getMealId().equals(mealId)) {
-                //معملتش ميثود ابديت هناك عشان مش مفيدة
                 item.setQuantity(newQuantity);
                 this.calculateSubtotal(); 
                 break; 
@@ -140,12 +133,10 @@ public class Orders implements Serializable {
         throw e;
     }
 }
-  //لازم نسيف الاوردر حتى لو مفيش ايتمز وعملنا الميثود دي عشان الفورين كي
   public void updateForOrederItems(EntityManager em) {
     EntityTransaction tx = em.getTransaction();
     try {
         tx.begin();
-        //عشان الاوردر يكون في الوقت اللي اتحطت فيه الايتمز
         if (this.orderPlacedAt == null) {
             this.orderPlacedAt = new Date(); 
         }
@@ -259,7 +250,6 @@ public class Orders implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof Orders)) {
             return false;
         }
@@ -270,13 +260,14 @@ public class Orders implements Serializable {
         return true;
     }
     
-
+        public static String generateOrderId() {
+           return "ORD-" + System.currentTimeMillis();
+       }
+        
     @Override
     public String toString() {
         return "foodhub.Orders[ id=" + id + " ]";
     }
-   public static String generateOrderId() {
-    return "ORD-" + System.currentTimeMillis(); // مثال: ORD-1714674000000
-}
+ 
     
 }
