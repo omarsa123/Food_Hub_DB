@@ -12,6 +12,8 @@ import java.util.UUID;
 
 public class AppConsole {
     private static final Scanner scanner = new Scanner(System.in);
+    private static Employye currentEmployee = null; // الموظف المسجل حالياً
+
     private static String generateOrderId() { return "ORD-" + System.currentTimeMillis(); }
     private static String generateMealId() { return "ML-" + UUID.randomUUID().toString().substring(0, 5).toUpperCase(); }
 
@@ -20,28 +22,44 @@ public class AppConsole {
             System.out.println("\n====================================");
             System.out.println("      WELCOME TO FOODHUB SYSTEM      ");
             System.out.println("====================================");
-            System.out.println("1. Staff Portal (Management)");
+            System.out.println("1. Staff Login (Management)");
             System.out.println("2. Customer Portal (Ordering)");
             System.out.println("3. Exit");
             System.out.print("Select: ");
 
             String input = scanner.nextLine();
-            if (input.equals("1")) employeeMenu(em);
+            if (input.equals("1")) {
+                if (employeeLogin(em)) employeeMenu(em);
+            }
             else if (input.equals("2")) customerMenu(em);
             else if (input.equals("3")) break;
         }
     }
 
+    // --- نظام التحقق من هوية الموظف ---
+    private static boolean employeeLogin(EntityManager em) {
+        System.out.print("Enter Employee ID (e.g., EMP001): ");
+        String id = scanner.nextLine();
+        Employye emp = em.find(Employye.class, id);
+        if (emp != null) {
+            currentEmployee = emp;
+            System.out.println("Welcome, " + emp.getName() + "!");
+            return true;
+        }
+        System.out.println("Invalid Employee ID.");
+        return false;
+    }
+
     private static void employeeMenu(EntityManager em) {
         while (true) {
-            System.out.println("\n--- STAFF DASHBOARD ---");
-            System.out.println("1. System Reports | 2. Manage Customers | 3. Manage Categories");
-            System.out.println("4. Manage Meals   | 5. Manage Orders    | 6. Search Portal");
-            System.out.println("7. View All Records | 8. Back");
+            System.out.println("\n--- STAFF DASHBOARD (Logged: " + currentEmployee.getName() + ") ---");
+            System.out.println("1. System Reports    | 2. Manage Customers | 3. Manage Categories");
+            System.out.println("4. Manage Meals      | 5. Manage Orders    | 6. Manage Employees (CRUD)");
+            System.out.println("7. Search Portal     | 8. View All Records | 9. Logout");
             System.out.print("Select: ");
             
             String choice = scanner.nextLine();
-            if (choice.equals("8")) break;
+            if (choice.equals("9")) { currentEmployee = null; break; }
 
             switch (choice) {
                 case "1": reportsMenu(em); break;
@@ -49,8 +67,43 @@ public class AppConsole {
                 case "3": manageCategoriesMenu(em); break; 
                 case "4": manageMealsMenu(em); break;      
                 case "5": manageOrdersMenu(em); break;
-                case "6": searchPortal(em); break;
-                case "7": viewAllRecordsMenu(em); break;
+                case "6": manageEmployeesCRUD(em); break; // جديد
+                case "7": searchPortal(em); break;
+                case "8": viewAllRecordsMenu(em); break;
+            }
+        }
+    }
+
+    // --- إدارة الموظفين CRUD (جديد) ---
+    private static void manageEmployeesCRUD(EntityManager em) {
+        while (true) {
+            System.out.println("\n--- EMPLOYEE MANAGEMENT ---");
+            System.out.println("1. List All | 2. Add New | 3. Update | 4. Delete | 5. Back");
+            String op = scanner.nextLine();
+            if (op.equals("5")) break;
+
+            switch (op) {
+                case "1":
+                    Employye.getAllEmployees(em).forEach(e -> System.out.println(e.getID() + " | " + e.getName() + " | " + e.getPhone()));
+                    break;
+                case "2":
+                    System.out.print("Name: "); String n = scanner.nextLine();
+                    System.out.print("Phone: "); String p = scanner.nextLine();
+                    System.out.print("Address: "); String a = scanner.nextLine();
+                    Employye newEmp = new Employye(Employye.generateID(), n, p, a);
+                    newEmp.insert(em);
+                    System.out.println("Employee Added with ID: " + newEmp.getID());
+                    break;
+                case "3":
+                    System.out.print("Enter ID: "); String uid = scanner.nextLine();
+                    System.out.print("New Name: "); String nn = scanner.nextLine();
+                    System.out.print("New Phone: "); String np = scanner.nextLine();
+                    Employye.updateEmployee(em, uid, nn, np);
+                    break;
+                case "4":
+                    System.out.print("Enter ID to Delete: ");
+                    Employye.deleteById(em, scanner.nextLine());
+                    break;
             }
         }
     }
@@ -62,7 +115,7 @@ public class AppConsole {
             System.out.println("5. Top Customer | 6. Per Category | 7. Unpaid Invoices ");
             System.out.println("8. All Delivered| 9. Back");
             String r = scanner.nextLine();
-            if (r.equals("10")) break;
+            if (r.equals("9")) break;
 
             System.out.println("\n--- RESULT ---");
             switch (r) {
@@ -98,9 +151,8 @@ public class AppConsole {
                 em.refresh(o); 
                 System.out.println("\n--- ORDER INFO ---");
                 System.out.println("Customer: " + o.getCustomerId().getName());
+                System.out.println("Employee in Charge: " + (o.getEmployee() != null ? o.getEmployee().getName() : "N/A"));
                 System.out.println("Status:   " + o.getStatus());
-                System.out.println("Created:  " + o.getOrderPlacedAt());
-                System.out.println("Completed At: " + (o.getCompletedAt() != null ? o.getCompletedAt() : "In Progress")); 
                 System.out.println("Items:");
                 o.getOrderItemsSet().forEach(i -> System.out.println("- " + i.getMeals().getName() + " x" + i.getQuantity()));
             } else System.out.println("Not Found.");
@@ -112,45 +164,22 @@ public class AppConsole {
                 em.refresh(inv); 
                 System.out.println("\n--- INVOICE INFO ---");
                 System.out.println("Invoice ID: " + inv.getId());
-                System.out.println("Status: " + inv.getStatus());
-                System.out.println("Created At: " + inv.getCreatedAt());
-                System.out.println("Payment Date: " + (inv.getPaymentDate() != null ? inv.getPaymentDate() : "Unpaid")); 
-                System.out.println("Total (fees incl): " + inv.getTotalPrice() + " EGP");
-                if (inv.getOrderId() != null) {
-                    System.out.println("Related Order ID: " + inv.getOrderId().getId());
-                }
+                System.out.println("Total: " + inv.getTotalPrice() + " EGP");
             } else System.out.println("Invoice Not Found.");
         }
     }
 
     private static void viewAllRecordsMenu(EntityManager em) {
         System.out.println("\n--- SYSTEM EXPLORER ---");
-        System.out.println("1. Customers | 2. Invoices | 3. Orders | 4. Categories | 5. Meals | 6. Back");
+        System.out.println("1. Customers | 2. Invoices | 3. Orders | 4. Categories | 5. Meals | 6. Employees | 7. Back");
         String op = scanner.nextLine();
         switch (op) {
-            case "1":
-                Customers.getAllCustomers(em).forEach(c -> System.out.println(c.getName() + " | " + c.getPhone()));
-                break;
-            case "2":
-                Invoice.getAllInvoices(em).forEach(i -> {
-                    System.out.print("ID: " + i.getId() + " | Created: " + i.getCreatedAt());
-                    if(i.getPaymentDate() != null) System.out.print(" | Paid: " + i.getPaymentDate());
-                    System.out.println(" | Total: " + i.getTotalPrice());
-                });
-                break;
-            case "3":
-                Orders.getAllOrders(em).forEach(o -> {
-                    System.out.print("ID: " + o.getId() + " | Date: " + o.getOrderPlacedAt());
-                    if(o.getCompletedAt() != null) System.out.print(" | Completed: " + o.getCompletedAt());
-                    System.out.println(" | Status: " + o.getStatus());
-                });
-                break;
-            case "4":
-                Categories.getAllCategories(em).forEach(c -> System.out.println("[" + c.getId() + "] " + c.getName()));
-                break;
-            case "5":
-                showMenu(em);
-                break;
+            case "1": Customers.getAllCustomers(em).forEach(c -> System.out.println(c.getName() + " | " + c.getPhone())); break;
+            case "2": Invoice.getAllInvoices(em).forEach(i -> System.out.println("ID: " + i.getId() + " | Total: " + i.getTotalPrice())); break;
+            case "3": Orders.getAllOrders(em).forEach(o -> System.out.println("ID: " + o.getId() + " | Status: " + o.getStatus())); break;
+            case "4": Categories.getAllCategories(em).forEach(c -> System.out.println("[" + c.getId() + "] " + c.getName())); break;
+            case "5": showMenu(em); break;
+            case "6": Employye.getAllEmployees(em).forEach(e -> System.out.println(e.getID() + " | " + e.getName())); break;
         }
     }
 
@@ -161,7 +190,7 @@ public class AppConsole {
             String op = scanner.nextLine();
             if (op.equals("5")) break;
             if (op.equals("1")) {
-                em.createQuery("SELECT c FROM Customers c", Customers.class).getResultList().forEach(c -> System.out.println(c.getName() + " | " + c.getPhone()));
+                Customers.getAllCustomers(em).forEach(c -> System.out.println(c.getName() + " | " + c.getPhone()));
             } else if (op.equals("2")) {
                 addNewCustomer(em);
             } else if (op.equals("3")) {
@@ -182,31 +211,86 @@ public class AppConsole {
         }
     }
 
-    private static void createNewOrder(EntityManager em) {
-        System.out.print("Enter Phone: ");
-        String p = scanner.nextLine();
-        List<Customers> res = em.createQuery("SELECT c FROM Customers c WHERE c.phone = :p", Customers.class).setParameter("p", p).getResultList();
-        if (res.isEmpty()) { System.out.println("Register first!"); return; }
-        
-        Orders order = new Orders(generateOrderId());
-        order.setCustomerId(res.get(0));
-        order.setOrderItemsSet(new HashSet<>());
-        
-        while(true) {
-            System.out.print("Meal ID (or 'n'): "); String mid = scanner.nextLine();
-            if (mid.equals("n")) break;
-            Meals m = em.find(Meals.class, mid);
-            if (m != null) {
-                System.out.print("Qty: "); int q = Integer.parseInt(scanner.nextLine());
-                OrderItems item = new OrderItems(order.getId(), mid);
-                item.setQuantity(q); item.setMeals(m); item.setOrders(order);
-                order.getOrderItemsSet().add(item);
-            }
-        }
-        order.updateForOrederItems(em);
-        System.out.println("Success! Total: " + order.getSubtotal());
+private static void createNewOrder(EntityManager em) {
+
+    System.out.print("Enter Phone: ");
+    String phone = scanner.nextLine();
+
+    List<Customers> customers = em.createQuery(
+            "SELECT c FROM Customers c WHERE c.phone = :p", Customers.class)
+            .setParameter("p", phone)
+            .getResultList();
+
+    if (customers.isEmpty()) {
+        System.out.println("Customer not found. Please register first.");
+        return;
     }
 
+    Customers customer = customers.get(0);
+
+    Employye employee = (currentEmployee != null)
+            ? currentEmployee
+            : Employye.getAllEmployees(em).get(0);
+
+    Orders order = new Orders(generateOrderId());
+    order.setCustomerId(customer);
+    order.setEmployee(employee);
+    order.setOrderItemsSet(new HashSet<>());
+
+    // إدخال الأصناف
+    while (true) {
+        System.out.print("Meal ID (or 'n' to finish): ");
+        String mealId = scanner.nextLine();
+
+        if (mealId.equalsIgnoreCase("n")) break;
+
+        Meals meal = em.find(Meals.class, mealId);
+        if (meal == null) {
+            System.out.println("Meal not found");
+            continue;
+        }
+
+        System.out.print("Quantity: ");
+        int qty = Integer.parseInt(scanner.nextLine());
+
+        OrderItems item = new OrderItems(order.getId(), mealId);
+        item.setMeals(meal);
+        item.setQuantity(qty);
+        item.setOrders(order);
+
+        order.getOrderItemsSet().add(item);
+    }
+
+    // حساب الإجمالي
+    order.updateForOrederItems();
+
+    try {
+        em.getTransaction().begin();
+
+        // ✔️ حفظ الطلب
+        order.insert(em);
+
+        // ✔️ إنشاء الفاتورة تلقائيًا
+        Invoice invoice = new Invoice(
+                "INV-" + order.getId().replace("ORD-", "")
+        );
+
+        invoice.setOrderId(order);
+        invoice.insert(em, 14.0, new BigDecimal("10.00"));
+
+        em.getTransaction().commit();
+
+        System.out.println("Order created successfully!");
+        System.out.println("Total: " + order.getSubtotal());
+
+    } catch (Exception e) {
+        if (em.getTransaction().isActive()) {
+            em.getTransaction().rollback();
+        }
+        e.printStackTrace();
+        System.out.println("Failed to create order");
+    }
+}
     private static void manageMealsMenu(EntityManager em) {
         while (true) {
             System.out.println("\n--- MEAL MANAGEMENT ---");
@@ -255,6 +339,7 @@ public class AppConsole {
         System.out.print("Meal Name: "); String n = scanner.nextLine();
         System.out.print("Price: "); BigDecimal pr = new BigDecimal(scanner.nextLine());
         Categories.getAllCategories(em).forEach(cat -> System.out.println(cat.getId() + ". " + cat.getName()));
+        System.out.print("Select Category ID: ");
         Categories selectedCat = em.find(Categories.class, Integer.parseInt(scanner.nextLine()));
         if (selectedCat != null) {
             Meals m = new Meals(generateMealId());
@@ -263,7 +348,8 @@ public class AppConsole {
     }
 
     private static void editMeal(EntityManager em) {
-        System.out.print("Meal ID: "); Meals m = em.find(Meals.class, scanner.nextLine());
+        System.out.print("Meal ID: "); String mid = scanner.nextLine();
+        Meals m = em.find(Meals.class, mid);
         if (m != null) {
             System.out.print("New Price: "); m.setPrice(new BigDecimal(scanner.nextLine()));
             em.getTransaction().begin(); em.merge(m); em.getTransaction().commit();

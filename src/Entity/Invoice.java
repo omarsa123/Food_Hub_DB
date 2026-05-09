@@ -27,6 +27,11 @@ public class Invoice implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
 
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = new Date();
+    }
+
     @Basic(optional = false)
     @Column(name = "fees")
     private BigDecimal fees;
@@ -80,19 +85,10 @@ public class Invoice implements Serializable {
         }
     }
 
-    public void insert(EntityManager em, double tax, BigDecimal delivery) {
-        EntityTransaction tx = em.getTransaction();
-        try {
-            tx.begin();
-            this.calculateFinalTotal(tax, delivery); 
-            em.persist(this);
-            tx.commit();
-        } catch (Exception e) {
-            if (tx.isActive()) tx.rollback();
-            e.printStackTrace();
-        }
-    }
-
+public void insert(EntityManager em, double tax, BigDecimal delivery) {
+    this.calculateFinalTotal(tax, delivery);
+    em.persist(this);
+}
 public void update(EntityManager em, InvoiceStatus newStatus, Date newPaymentDate) {
         EntityTransaction tx = em.getTransaction();
         try {

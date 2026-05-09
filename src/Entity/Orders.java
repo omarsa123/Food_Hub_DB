@@ -66,6 +66,9 @@ public class Orders implements Serializable {
     @JoinColumn(name = "customer_id", referencedColumnName = "ID")
     @ManyToOne(optional = false)
     private Customers customerId;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "Emp_ID", referencedColumnName = "ID")
+    private Employye employee;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "orderId")
     private Invoice invoice;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "orders")
@@ -88,16 +91,17 @@ public class Orders implements Serializable {
         }
         this.subtotal = total;
     }
-      public void saveOrder(EntityManager em) {
-        EntityTransaction tx = em.getTransaction();
-        try {
-            tx.begin();
-            em.persist(this);
-            tx.commit();
-        } catch (Exception e) {
-            if (tx.isActive()) tx.rollback();
-            throw e;
-        }
+
+    public Employye getEmployee() {
+        return employee;
+    }
+
+    public void setEmployee(Employye employee) {
+        this.employee = employee;
+    }
+  
+      public void insert(EntityManager em) {
+         em.persist(this);
     }
   public void updateOrderStatus(EntityManager em, Enums.OrderStatus newStatus) {
     EntityTransaction tx = em.getTransaction(); 
@@ -133,27 +137,22 @@ public class Orders implements Serializable {
         throw e;
     }
 }
-  public void updateForOrederItems(EntityManager em) {
-    EntityTransaction tx = em.getTransaction();
-    try {
-        tx.begin();
-        if (this.orderPlacedAt == null) {
-            this.orderPlacedAt = new Date(); 
-        }
-        this.calculateSubtotal();
-        if (this.orderItemsSet != null) {
-            for (OrderItems item : this.orderItemsSet) {
-                item.setOrders(this); 
-                if (item.getOrderItemsPK() != null) {
-                    item.getOrderItemsPK().setOrderId(this.id); 
-                }
+  public void updateForOrederItems() {
+
+    if (this.orderPlacedAt == null) {
+        this.orderPlacedAt = new Date();
+    }
+
+    this.calculateSubtotal();
+
+    if (this.orderItemsSet != null) {
+        for (OrderItems item : this.orderItemsSet) {
+            item.setOrders(this);
+
+            if (item.getOrderItemsPK() != null) {
+                item.getOrderItemsPK().setOrderId(this.id);
             }
         }
-        em.merge(this);
-        tx.commit();
-    } catch (Exception e) {
-        if (tx.isActive()) tx.rollback();
-        throw e;
     }
 }
    public static void deleteById(EntityManager em, int id) {
